@@ -99,9 +99,12 @@ sudo ufw --force enable
 # Démarrage de l'application avec PM2
 print_status "Démarrage de l'application..."
 cd $APP_DIR
-sudo -u $SERVICE_USER pm2 start ecosystem.config.js
+sudo -u $SERVICE_USER pm2 start ecosystem.config.cjs
 sudo -u $SERVICE_USER pm2 save
-sudo -u $SERVICE_USER pm2 startup
+
+# Configuration du démarrage automatique PM2
+print_status "Configuration du démarrage automatique..."
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $SERVICE_USER --hp $APP_DIR
 
 # Configuration des logs
 print_status "Configuration de la rotation des logs..."
@@ -143,6 +146,13 @@ EOF
 
 sudo systemctl restart fail2ban
 
+# Création du fichier .env si il n'existe pas
+if [ ! -f "$APP_DIR/.env" ]; then
+    print_status "Création du fichier .env..."
+    sudo -u $SERVICE_USER cp $APP_DIR/.env.example $APP_DIR/.env
+    print_warning "N'oubliez pas de configurer vos variables Supabase dans $APP_DIR/.env"
+fi
+
 print_status "✅ Déploiement terminé avec succès!"
 print_status "🌐 Votre application est accessible à l'adresse: http://$DOMAIN"
 print_status "📁 Répertoire de l'application: $APP_DIR"
@@ -158,4 +168,13 @@ print_warning "N'oubliez pas de:"
 print_warning "  1. Configurer votre domaine dans nginx.conf"
 print_warning "  2. Ajouter vos fichiers vidéos dans $APP_DIR/public/videos"
 print_warning "  3. Configurer SSL/HTTPS si nécessaire"
-print_warning "  4. Configurer vos variables d'environnement Supabase dans .env"
+print_warning "  4. Configurer vos variables d'environnement Supabase dans $APP_DIR/.env"
+
+# Test de l'application
+print_status "Test de l'application..."
+sleep 5
+if curl -f http://localhost:3000/api/health > /dev/null 2>&1; then
+    print_status "✅ L'application répond correctement!"
+else
+    print_error "❌ L'application ne répond pas. Vérifiez les logs avec: sudo -u $SERVICE_USER pm2 logs"
+fi
