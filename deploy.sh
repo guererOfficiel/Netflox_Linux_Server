@@ -45,12 +45,20 @@ sudo apt install -y curl wget git nginx ufw fail2ban
 
 # Installation de Node.js (version LTS)
 print_status "Installation de Node.js..."
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-sudo apt-get install -y nodejs
+if ! command -v node &> /dev/null; then
+    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+else
+    print_warning "Node.js est déjà installé ($(node --version))"
+fi
 
 # Installation de PM2 globalement
 print_status "Installation de PM2..."
-sudo npm install -g pm2
+if ! command -v pm2 &> /dev/null; then
+    sudo npm install -g pm2
+else
+    print_warning "PM2 est déjà installé ($(pm2 --version))"
+fi
 
 # Création de l'utilisateur système
 print_status "Création de l'utilisateur système..."
@@ -68,14 +76,22 @@ sudo mkdir -p $APP_DIR/public/videos
 sudo mkdir -p $APP_DIR/logs
 sudo chown -R $SERVICE_USER:$SERVICE_USER $APP_DIR
 
+# Arrêter l'application existante si elle tourne
+print_status "Arrêt de l'application existante..."
+sudo -u $SERVICE_USER pm2 delete net-flox 2>/dev/null || true
+
 # Copie des fichiers de l'application
 print_status "Copie des fichiers de l'application..."
 sudo cp -r . $APP_DIR/
 sudo chown -R $SERVICE_USER:$SERVICE_USER $APP_DIR
 
+# Supprimer l'ancien fichier de config PM2 s'il existe
+sudo rm -f $APP_DIR/ecosystem.config.js
+
 # Installation des dépendances Node.js
 print_status "Installation des dépendances Node.js..."
 cd $APP_DIR
+sudo -u $SERVICE_USER npm audit fix || true
 sudo -u $SERVICE_USER npm install
 
 # Build de l'application
@@ -87,6 +103,7 @@ print_status "Configuration de Nginx..."
 sudo cp nginx.conf $NGINX_CONF
 sudo sed -i "s/your-domain.com/$DOMAIN/g" $NGINX_CONF
 sudo ln -sf $NGINX_CONF /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl reload nginx
 
@@ -149,7 +166,17 @@ sudo systemctl restart fail2ban
 # Création du fichier .env si il n'existe pas
 if [ ! -f "$APP_DIR/.env" ]; then
     print_status "Création du fichier .env..."
-    sudo -u $SERVICE_USER cp $APP_DIR/.env.example $APP_DIR/.env
+    sudo -u $SERVICE_USER cp $APP_DIR/.env.example $APP_DIR/.env 2>/dev/null || {
+        sudo -u $SERVICE_USER tee $APP_DIR/.env > /dev/null <<EOF
+# Configuration Supabase
+VITE_SUPABASE_URL=https://votre-projet.supabase.co
+VITE_SUPABASE_ANON_KEY=votre-clé-anonyme-supabase
+
+# Configuration serveur
+NODE_ENV=production
+PORT=3000
+EOF
+    }
     print_warning "N'oubliez pas de configurer vos variables Supabase dans $APP_DIR/.env"
 fi
 
@@ -172,9 +199,13 @@ print_warning "  4. Configurer vos variables d'environnement Supabase dans $APP_
 
 # Test de l'application
 print_status "Test de l'application..."
-sleep 5
+sleep 10
 if curl -f http://localhost:3000/api/health > /dev/null 2>&1; then
     print_status "✅ L'application répond correctement!"
+    print_status "📊 Statut PM2:"
+    sudo -u $SERVICE_USER pm2 status
 else
     print_error "❌ L'application ne répond pas. Vérifiez les logs avec: sudo -u $SERVICE_USER pm2 logs"
+    print_status "📊 Statut PM2:"
+    sudo -u $SERVICE_USER pm2 status
 fi
