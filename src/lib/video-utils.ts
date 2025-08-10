@@ -3,7 +3,7 @@ import { VIDEO_EXTENSIONS } from './constants'
 export async function checkVideoAvailability(movieId: number): Promise<boolean> {
   for (const ext of VIDEO_EXTENSIONS) {
     try {
-      const response = await fetch(`/videos/${movieId}${ext}`, { method: 'HEAD' })
+      const response = await fetch(`/api/videos/${movieId}${ext}`, { method: 'HEAD' })
       if (response.ok) {
         return true
       }
@@ -17,9 +17,9 @@ export async function checkVideoAvailability(movieId: number): Promise<boolean> 
 export async function getVideoPath(movieId: number): Promise<string | null> {
   for (const ext of VIDEO_EXTENSIONS) {
     try {
-      const response = await fetch(`/videos/${movieId}${ext}`, { method: 'HEAD' })
+      const response = await fetch(`/api/videos/${movieId}${ext}`, { method: 'HEAD' })
       if (response.ok) {
-        return `/videos/${movieId}${ext}`
+        return `/api/videos/${movieId}${ext}`
       }
     } catch {
       continue
