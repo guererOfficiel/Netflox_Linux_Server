@@ -34,6 +34,16 @@ const VIDEOS_DIR = process.env.NODE_ENV === 'production'
 if (!fs.existsSync(VIDEOS_DIR)) {
   fs.mkdirSync(VIDEOS_DIR, { recursive: true });
   console.log(`Dossier vidéos créé: ${VIDEOS_DIR}`);
+} else {
+  console.log(`Dossier vidéos trouvé: ${VIDEOS_DIR}`);
+  // Lister les fichiers pour debug
+  try {
+    const files = fs.readdirSync(VIDEOS_DIR);
+    console.log(`Fichiers vidéos disponibles: ${files.length}`);
+    files.forEach(file => console.log(`  - ${file}`));
+  } catch (error) {
+    console.error('Erreur lors de la lecture du dossier vidéos:', error);
+  }
 }
 
 // Route pour lister les vidéos disponibles
@@ -60,12 +70,17 @@ app.get('/api/videos/:filename', (req, res) => {
   const { filename } = req.params;
   const videoPath = join(VIDEOS_DIR, filename);
 
+  console.log(`Tentative d'accès à la vidéo: ${filename}`);
+  console.log(`Chemin complet: ${videoPath}`);
+  console.log(`Fichier existe: ${fs.existsSync(videoPath)}`);
   // Vérification de sécurité pour éviter les attaques de traversée de répertoire
   if (!videoPath.startsWith(VIDEOS_DIR)) {
+    console.log('Accès interdit - traversée de répertoire détectée');
     return res.status(403).json({ error: 'Accès interdit' });
   }
 
   if (!fs.existsSync(videoPath)) {
+    console.log(`Vidéo non trouvée: ${videoPath}`);
     return res.status(404).json({ error: 'Vidéo non trouvée' });
   }
 

@@ -98,7 +98,7 @@ export function VideoPlayer({ movieId, className }: VideoPlayerProps) {
         <div className="text-center">
           <p className="text-lg text-gray-400">{error}</p>
           <p className="mt-2 text-sm text-gray-500">
-            Pour regarder ce film, placez le fichier vidéo dans le dossier public/videos avec le nom : {movieId}[.mp4|.mkv|.avi]
+            Pour regarder ce film, placez le fichier vidéo dans le dossier /var/www/net-flox/public/videos avec le nom : {movieId}[.mp4|.mkv|.avi]
           </p>
         </div>
       </div>
