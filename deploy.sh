@@ -37,17 +37,17 @@ fi
 
 # Mise à jour du système
 print_status "Mise à jour du système..."
-sudo apt update && sudo apt upgrade -y
+/usr/bin/sudo apt update && /usr/bin/sudo apt upgrade -y
 
 # Installation des dépendances système
 print_status "Installation des dépendances système..."
-sudo apt install -y curl wget git nginx ufw fail2ban
+/usr/bin/sudo apt install -y curl wget git nginx ufw fail2ban
 
 # Installation de Node.js (version LTS)
 print_status "Installation de Node.js..."
 if ! command -v node &> /dev/null; then
     curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-    sudo apt-get install -y nodejs
+    /usr/bin/sudo apt-get install -y nodejs
 else
     print_warning "Node.js est déjà installé ($(node --version))"
 fi
@@ -55,7 +55,7 @@ fi
 # Installation de PM2 globalement
 print_status "Installation de PM2..."
 if ! command -v pm2 &> /dev/null; then
-    sudo npm install -g pm2
+    /usr/bin/sudo npm install -g pm2
 else
     print_warning "PM2 est déjà installé ($(pm2 --version))"
 fi
@@ -63,7 +63,7 @@ fi
 # Création de l'utilisateur système
 print_status "Création de l'utilisateur système..."
 if ! id "$SERVICE_USER" &>/dev/null; then
-    sudo useradd -r -s /bin/bash -d $APP_DIR $SERVICE_USER
+    /usr/bin/sudo useradd -r -s /bin/bash -d $APP_DIR $SERVICE_USER
     print_status "Utilisateur $SERVICE_USER créé"
 else
     print_warning "L'utilisateur $SERVICE_USER existe déjà"
@@ -71,61 +71,61 @@ fi
 
 # Création du répertoire de l'application
 print_status "Création du répertoire de l'application..."
-sudo mkdir -p $APP_DIR
-sudo mkdir -p $APP_DIR/public/videos
-sudo mkdir -p $APP_DIR/logs
-sudo chown -R $SERVICE_USER:$SERVICE_USER $APP_DIR
+/usr/bin/sudo mkdir -p $APP_DIR
+/usr/bin/sudo mkdir -p $APP_DIR/public/videos
+/usr/bin/sudo mkdir -p $APP_DIR/logs
+/usr/bin/sudo chown -R $SERVICE_USER:$SERVICE_USER $APP_DIR
 
 # Arrêter l'application existante si elle tourne
 print_status "Arrêt de l'application existante..."
-sudo -u $SERVICE_USER pm2 delete net-flox 2>/dev/null || true
+/usr/bin/sudo -u $SERVICE_USER pm2 delete net-flox 2>/dev/null || true
 
 # Copie des fichiers de l'application
 print_status "Copie des fichiers de l'application..."
-sudo cp -r . $APP_DIR/
-sudo chown -R $SERVICE_USER:$SERVICE_USER $APP_DIR
+/usr/bin/sudo cp -r . $APP_DIR/
+/usr/bin/sudo chown -R $SERVICE_USER:$SERVICE_USER $APP_DIR
 
 # Supprimer l'ancien fichier de config PM2 s'il existe
-sudo rm -f $APP_DIR/ecosystem.config.js
+/usr/bin/sudo rm -f $APP_DIR/ecosystem.config.js
 
 # Installation des dépendances Node.js
 print_status "Installation des dépendances Node.js..."
 cd $APP_DIR
-sudo -u $SERVICE_USER npm audit fix || true
-sudo -u $SERVICE_USER npm install
+/usr/bin/sudo -u $SERVICE_USER npm audit fix || true
+/usr/bin/sudo -u $SERVICE_USER npm install
 
 # Build de l'application
 print_status "Build de l'application..."
-sudo -u $SERVICE_USER npm run build
+/usr/bin/sudo -u $SERVICE_USER npm run build
 
 # Configuration de Nginx
 print_status "Configuration de Nginx..."
-sudo cp nginx.conf $NGINX_CONF
-sudo sed -i "s/your-domain.com/$DOMAIN/g" $NGINX_CONF
-sudo ln -sf $NGINX_CONF /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t
-sudo systemctl reload nginx
+/usr/bin/sudo cp nginx.conf $NGINX_CONF
+/usr/bin/sudo sed -i "s/your-domain.com/$DOMAIN/g" $NGINX_CONF
+/usr/bin/sudo ln -sf $NGINX_CONF /etc/nginx/sites-enabled/
+/usr/bin/sudo rm -f /etc/nginx/sites-enabled/default
+/usr/bin/sudo nginx -t
+/usr/bin/sudo systemctl reload nginx
 
 # Configuration du firewall
 print_status "Configuration du firewall..."
-sudo ufw allow ssh
-sudo ufw allow 'Nginx Full'
-sudo ufw --force enable
+/usr/bin/sudo ufw allow ssh
+/usr/bin/sudo ufw allow 'Nginx Full'
+/usr/bin/sudo ufw --force enable
 
 # Démarrage de l'application avec PM2
 print_status "Démarrage de l'application..."
 cd $APP_DIR
-sudo -u $SERVICE_USER pm2 start ecosystem.config.cjs
-sudo -u $SERVICE_USER pm2 save
+/usr/bin/sudo -u $SERVICE_USER pm2 start ecosystem.config.cjs
+/usr/bin/sudo -u $SERVICE_USER pm2 save
 
 # Configuration du démarrage automatique PM2
 print_status "Configuration du démarrage automatique..."
-sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $SERVICE_USER --hp $APP_DIR
+/usr/bin/sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $SERVICE_USER --hp $APP_DIR
 
 # Configuration des logs
 print_status "Configuration de la rotation des logs..."
-sudo tee /etc/logrotate.d/net-flox > /dev/null <<EOF
+/usr/bin/sudo tee /etc/logrotate.d/net-flox > /dev/null <<EOF
 $APP_DIR/logs/*.log {
     daily
     missingok
@@ -135,14 +135,14 @@ $APP_DIR/logs/*.log {
     notifempty
     create 644 $SERVICE_USER $SERVICE_USER
     postrotate
-        sudo -u $SERVICE_USER pm2 reloadLogs
+        /usr/bin/sudo -u $SERVICE_USER pm2 reloadLogs
     endscript
 }
 EOF
 
 # Configuration de fail2ban pour Nginx
 print_status "Configuration de fail2ban..."
-sudo tee /etc/fail2ban/jail.local > /dev/null <<EOF
+/usr/bin/sudo tee /etc/fail2ban/jail.local > /dev/null <<EOF
 [DEFAULT]
 bantime = 3600
 findtime = 600
@@ -161,13 +161,13 @@ enabled = true
 enabled = true
 EOF
 
-sudo systemctl restart fail2ban
+/usr/bin/sudo systemctl restart fail2ban
 
 # Création du fichier .env si il n'existe pas
 if [ ! -f "$APP_DIR/.env" ]; then
     print_status "Création du fichier .env..."
-    sudo -u $SERVICE_USER cp $APP_DIR/.env.example $APP_DIR/.env 2>/dev/null || {
-        sudo -u $SERVICE_USER tee $APP_DIR/.env > /dev/null <<EOF
+    /usr/bin/sudo -u $SERVICE_USER cp $APP_DIR/.env.example $APP_DIR/.env 2>/dev/null || {
+        /usr/bin/sudo -u $SERVICE_USER tee $APP_DIR/.env > /dev/null <<EOF
 # Configuration Supabase
 VITE_SUPABASE_URL=https://votre-projet.supabase.co
 VITE_SUPABASE_ANON_KEY=votre-clé-anonyme-supabase
@@ -187,9 +187,9 @@ print_status "📁 Répertoire des vidéos: $APP_DIR/public/videos"
 print_status ""
 print_status "Commandes utiles:"
 print_status "  - Voir les logs: sudo -u $SERVICE_USER pm2 logs"
-print_status "  - Redémarrer l'app: sudo -u $SERVICE_USER pm2 restart net-flox"
-print_status "  - Statut de l'app: sudo -u $SERVICE_USER pm2 status"
-print_status "  - Recharger Nginx: sudo systemctl reload nginx"
+print_status "  - Redémarrer l'app: /usr/bin/sudo -u $SERVICE_USER pm2 restart net-flox"
+print_status "  - Statut de l'app: /usr/bin/sudo -u $SERVICE_USER pm2 status"
+print_status "  - Recharger Nginx: /usr/bin/sudo systemctl reload nginx"
 print_status ""
 print_warning "N'oubliez pas de:"
 print_warning "  1. Configurer votre domaine dans nginx.conf"
@@ -203,9 +203,9 @@ sleep 10
 if curl -f http://localhost:3000/api/health > /dev/null 2>&1; then
     print_status "✅ L'application répond correctement!"
     print_status "📊 Statut PM2:"
-    sudo -u $SERVICE_USER pm2 status
+    /usr/bin/sudo -u $SERVICE_USER pm2 status
 else
-    print_error "❌ L'application ne répond pas. Vérifiez les logs avec: sudo -u $SERVICE_USER pm2 logs"
+    print_error "❌ L'application ne répond pas. Vérifiez les logs avec: /usr/bin/sudo -u $SERVICE_USER pm2 logs"
     print_status "📊 Statut PM2:"
-    sudo -u $SERVICE_USER pm2 status
+    /usr/bin/sudo -u $SERVICE_USER pm2 status
 fi
