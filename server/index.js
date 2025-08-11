@@ -129,12 +129,18 @@ app.head('/api/videos/:filename', (req, res) => {
   const { filename } = req.params;
   const videoPath = join(VIDEOS_DIR, filename);
 
+  console.log(`HEAD request for: ${filename}`);
+  console.log(`Full path: ${videoPath}`);
+  console.log(`File exists: ${fs.existsSync(videoPath)}`);
+
   if (!videoPath.startsWith(VIDEOS_DIR)) {
+    console.log('Access denied - directory traversal detected');
     return res.status(403).end();
   }
 
   if (fs.existsSync(videoPath)) {
     const stat = fs.statSync(videoPath);
+    console.log(`File found, size: ${stat.size} bytes`);
     res.set({
       'Content-Length': stat.size,
       'Content-Type': getContentType(filename),
@@ -142,6 +148,7 @@ app.head('/api/videos/:filename', (req, res) => {
     });
     res.status(200).end();
   } else {
+    console.log(`File not found: ${videoPath}`);
     res.status(404).end();
   }
 });

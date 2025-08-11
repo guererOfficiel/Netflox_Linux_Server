@@ -24,19 +24,24 @@ export function VideoPlayer({ movieId, className }: VideoPlayerProps) {
   useEffect(() => {
     const checkVideo = async () => {
       try {
+        console.log(`Checking video for movie ID: ${movieId}`)
         for (const ext of VIDEO_EXTENSIONS) {
           const url = `/api/videos/${movieId}${ext}`
+          console.log(`Trying URL: ${url}`)
           try {
             const response = await fetch(url, { method: 'HEAD' })
+            console.log(`Response for ${url}:`, response.status, response.ok)
             if (response.ok) {
+              console.log(`Video found: ${url}`)
               setVideoUrl(url)
               setLoading(false)
               return
             }
           } catch (err) {
-            console.log(`File not found with extension ${ext}`)
+            console.log(`Error checking ${url}:`, err)
           }
         }
+        console.log('No video file found for any extension')
         setError('Vidéo non disponible')
       } catch (err) {
         console.error('Error checking video:', err)
