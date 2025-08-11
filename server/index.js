@@ -101,9 +101,8 @@ app.get('/api/videos/:filename', (req, res) => {
       'Accept-Ranges': 'bytes',
       'Content-Length': chunksize,
       'Content-Type': getContentType(filename),
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
+      'Cache-Control': 'public, max-age=3600',
+      'Content-Disposition': 'inline'
     };
     
     res.writeHead(206, head);
@@ -114,9 +113,8 @@ app.get('/api/videos/:filename', (req, res) => {
       'Content-Length': fileSize,
       'Content-Type': getContentType(filename),
       'Accept-Ranges': 'bytes',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
+      'Cache-Control': 'public, max-age=3600',
+      'Content-Disposition': 'inline'
     };
     
     res.writeHead(200, head);
@@ -144,7 +142,8 @@ app.head('/api/videos/:filename', (req, res) => {
     res.set({
       'Content-Length': stat.size,
       'Content-Type': getContentType(filename),
-      'Accept-Ranges': 'bytes'
+      'Accept-Ranges': 'bytes',
+      'Content-Disposition': 'inline'
     });
     res.status(200).end();
   } else {
