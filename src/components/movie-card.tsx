@@ -32,21 +32,27 @@ export function MovieCard({ movie, className }: MovieCardProps) {
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <h3 className="text-lg font-semibold text-white">{movie.title}</h3>
-          <div className="mt-2 flex space-x-2">
-            <button 
-              onClick={handlePlayClick}
-              className="rounded-full bg-primary p-2 text-white hover:bg-primary/90"
-              title="Lecture"
-            >
-              <Play className="h-4 w-4" />
-            </button>
-            <button className="rounded-full bg-white/20 p-2 text-white backdrop-blur-sm hover:bg-white/30">
-              <Plus className="h-4 w-4" />
-            </button>
-          </div>
+      
+      {/* Overlay toujours visible */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent">
+        <div className="absolute bottom-0 left-0 right-0 p-3">
+          <h3 className="text-sm font-semibold text-white mb-2 line-clamp-2">{movie.title}</h3>
+        </div>
+      </div>
+      
+      {/* Boutons au centre - toujours visibles */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="flex space-x-3">
+          <button 
+            onClick={handlePlayClick}
+            className="rounded-full bg-primary p-3 text-white hover:bg-primary/90 shadow-lg transition-all hover:scale-110"
+            title="Lecture"
+          >
+            <Play className="h-5 w-5" />
+          </button>
+          <button className="rounded-full bg-white/20 p-3 text-white backdrop-blur-sm hover:bg-white/30 shadow-lg transition-all hover:scale-110">
+            <Plus className="h-5 w-5" />
+          </button>
         </div>
       </div>
     </Link>
