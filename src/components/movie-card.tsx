@@ -10,6 +10,13 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ movie, className }: MovieCardProps) {
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const videoUrl = `${window.location.origin}/api/videos/${movie.id}.mp4`
+    window.open(videoUrl, '_blank')
+  }
+
   return (
     <Link
       to={`/movie/${movie.id}`}
@@ -29,7 +36,11 @@ export function MovieCard({ movie, className }: MovieCardProps) {
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <h3 className="text-lg font-semibold text-white">{movie.title}</h3>
           <div className="mt-2 flex space-x-2">
-            <button className="rounded-full bg-primary p-2 text-white hover:bg-primary/90">
+            <button 
+              onClick={handlePlayClick}
+              className="rounded-full bg-primary p-2 text-white hover:bg-primary/90"
+              title="Lecture"
+            >
               <Play className="h-4 w-4" />
             </button>
             <button className="rounded-full bg-white/20 p-2 text-white backdrop-blur-sm hover:bg-white/30">

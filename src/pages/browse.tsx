@@ -6,6 +6,12 @@ import { getImageUrl } from '../lib/tmdb'
 export function Browse() {
   const { trending, popular, topRated, loading, error } = useMovies()
 
+  const handleHeroPlayClick = () => {
+    if (trending[0]) {
+      const videoUrl = `${window.location.origin}/api/videos/${trending[0].id}.mp4`
+      window.open(videoUrl, '_blank')
+    }
+  }
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -42,9 +48,12 @@ export function Browse() {
             {featuredMovie?.overview}
           </p>
           <div className="mt-6 flex space-x-4">
-            <button className="flex items-center space-x-2 rounded-md bg-primary px-6 py-3 font-semibold text-white hover:bg-primary/90">
+            <button 
+              onClick={handleHeroPlayClick}
+              className="flex items-center space-x-2 rounded-md bg-primary px-6 py-3 font-semibold text-white hover:bg-primary/90"
+            >
               <Play className="h-5 w-5" />
-              <span>Play</span>
+              <span>Lecture</span>
             </button>
             <button className="flex items-center space-x-2 rounded-md bg-white/20 px-6 py-3 font-semibold text-white backdrop-blur-sm hover:bg-white/30">
               <Plus className="h-5 w-5" />
