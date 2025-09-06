@@ -20,7 +20,7 @@ export function VideoPlayer({ movieId, className }: VideoPlayerProps) {
   useEffect(() => {
     const checkVideo = async () => {
       try {
-        for (const ext of VIDEO_EXTENSIONS) {
+        const url = `${window.location.origin}/api/videos/${movieId}`
           const url = `${window.location.origin}/api/videos/${movieId}`
           setVideoUrl(url)
           setLoading(false)

@@ -13,7 +13,7 @@ export function MovieCard({ movie, className }: MovieCardProps) {
   const handlePlayClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const videoUrl = `${window.location.origin}/api/videos/${movie.id}.mp4`
+    const videoUrl = `${window.location.origin}/api/videos/${movie.id}`
     window.open(videoUrl, '_blank')
   }
 

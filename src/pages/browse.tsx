@@ -8,7 +8,7 @@ export function Browse() {
 
   const handleHeroPlayClick = () => {
     if (trending[0]) {
-      const videoUrl = `${window.location.origin}/api/videos/${trending[0].id}.mp4`
+      const videoUrl = `${window.location.origin}/api/videos/${trending[0].id}`
       window.open(videoUrl, '_blank')
     }
   }
